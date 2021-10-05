@@ -36,9 +36,17 @@ app.route('/')
 //For FCC testing purposes
 fccTestingRoutes(app);
 
-//Routing for API 
-apiRoutes(app);  
-    
+//Routing for API
+apiRoutes(app);
+
+app.use(function(err, req, res, next) {
+  if (err) {
+    res.status(500)
+    .type('text')
+    .send(err.message ? err.message : 'Something went wrong');
+  }
+})
+
 //404 Not Found Middleware
 app.use(function(req, res, next) {
   res.status(404)
