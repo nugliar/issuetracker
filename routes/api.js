@@ -101,13 +101,14 @@ module.exports = function (app) {
         return res.send({ error: 'missing _id' });
       }
 
-      console.log(req.body);
-
       IssueModel.findOne({
         _id: req.body._id,
         project: project
       }, function(err, issue) {
         if (err || !issue) {
+          console.log('issue: ' + issue);
+          console.log(req.body);
+          console.log(err);
           return res.send({
             _id: req.body._id,
             error: 'could not update'
