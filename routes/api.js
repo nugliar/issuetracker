@@ -6,9 +6,9 @@ mongoose.connect(process.env.MONGO_URI, {useNewUrlParser: true, useUnifiedTopolo
 
 const issueSchema = new mongoose.Schema({
   project: String,
-  issue_title: { type: String, required: true },
-  issue_text: { type: String, required: true },
-  created_by: { type: String, required: true },
+  issue_title: String,
+  issue_text: String,
+  created_by: String,
   created_on: String,
   updated_on: String,
   assigned_to: String,
@@ -40,40 +40,16 @@ module.exports = function (app) {
       const project = req.params.project;
       const query = req.query;
 
-      const toISODate = (string) => {
-        return string ? new Date(string).toISOString() : undefined
-      };
-
-      const toBool = (string) => {
-        if (string === 'true') { return true }
-        if (string === 'false') { return false }
-        return undefined;
-      }
-
-      const filter = {
-        _id: query._id,
-        issue_title: query.issue_title,
-        issue_text: query.issue_text,
-        created_on: toISODate(query.created_on),
-        updated_on: toISODate(query.updated_on),
-        created_by: query.created_by,
-        assigned_to: query.assigned_to,
-        open: toBool(query.open),
-        status_text: query.status_text
-      };
-
       IssueModel.find({project: project}, function(err, issues) {
         if (err) { return next(err) }
+
         const filteredIssues = issues.filter(issue => {
           for (const key in query) {
             if (issue[key] !== undefined
-            && filter[key] !== undefined
-            && issue[key] !== filter[key]) {
-              if (key === 'created_on') {
-                console.log(issue[key] + ' !== ' + filter[key]);
-              }
-              return false;
-            }
+              && query[key] !== undefined
+                && issue[key].toString() !== query[key]) {
+                  return false;
+                }
           }
           return true;
         })
@@ -82,7 +58,15 @@ module.exports = function (app) {
     })
 
     .post(function (req, res, next){
-      let project = req.params.project;
+      const requiredFields = [ 'issue_title', 'issue_text', 'created_by'];
+      const project = req.params.project;
+
+      for (const field of requiredFields) {
+        if (!req.body[field]) {
+          res.status(400);
+          return res.send({ error: 'required field(s) missing' });
+        }
+      }
 
       IssueModel.create({
         project: project,
@@ -102,100 +86,79 @@ module.exports = function (app) {
     })
 
     .put(function (req, res, next) {
-      let project = req.params.project;
-      const update = Object.keys(req.body)
-        .filter(key => req.body[key])
-        .reduce((object, key) => {
-          object[key] = req.body[key];
-          return object;
-        }, {});
+      const project = req.params.project;
 
-      IssueModel.findByIdAndUpdate(
-        req.body._id,
-        Object.assign({}, update, {
+      if (!req.body._id) {
+        res.status(400);
+        return res.send({ error: 'missing _id' });
+      }
+
+      IssueModel.findOne({
+        _id: req.body._id,
+        project: project
+      }, function(err, issue) {
+        if (err || !issue) {
+          res.status(500);
+          return res.send({
+            _id: req.body._id,
+            error: 'could not update'
+          });
+        }
+
+        const update = Object.keys(req.body)
+          .filter(key => req.body[key] && key !== '_id')
+          .reduce((object, key) => {
+            object[key] = req.body[key];
+            return object;
+          }, {});
+
+        if (!Object.keys(update).length) {
+          res.status(400);
+          return res.send({
+            _id: req.body._id,
+            error: 'no update field(s) sent'
+          });
+        }
+
+        issue = Object.assign(issue, update, {
           updated_on: new Date().toISOString(),
           open: req.body.open ? false : req.body.open
-        }),
-        { new: true },
-        function(err, issue) {
+        });
+
+        issue.save(function(err, issue) {
           if (err) { return next(err) }
-          if (!issue) { return next(new Error('issue not found')) }
           res.send({
             _id: issue._id,
             result: 'successfully updated',
           });
-        }
-      )
+        })
+      })
     })
 
     .delete(function (req, res, next) {
-      let project = req.params.project;
+      const project = req.params.project;
+
+      if (!req.body._id) {
+        res.status(400);
+        return res.send({ error: 'missing _id' });
+      }
 
       IssueModel.deleteOne({
-        _id: req.body._id
+        _id: req.body._id,
+        project: project
       }, function(err, result) {
-        if (err) { return next(err) }
-        if (result.deletedCount) {
+        if (!err && result.deletedCount) {
           res.send({
+            _id: req.body._id,
             result: 'successfully deleted',
-            _id: req.body._id
           })
         } else {
-          return next(new Error('issue not found'))
+          res.status(500);
+          res.send({
+            _id: req.body._id,
+            error: 'could not delete'
+          })
         }
       });
-    });
-
-  app.route('/_api/issues/addRandomHundred')
-
-    .get(function (req, res, next) {
-
-      const randomString = () => {
-        const length = Math.round(Math.random() * 15 + 5);
-        let array = [];
-
-        for (let idx = 0; idx < length; idx++) {
-          array.push(String
-            .fromCharCode(32 + Math.floor(Math.random() * 94))
-            .concat(String.fromCharCode(97 + Math.floor(Math.random() * 25)))
-            .match(/[0-9a-zA-Z]/g)
-            .join('')
-          )
-        }
-        return array.join('');
-      }
-
-      let issues = [];
-
-      for (let idx = 0; idx < 100; idx++) {
-        issues.push({
-          project: 'random',
-          issue_title: randomString(),
-          issue_text: randomString(),
-          created_by: randomString(),
-          assigned_to: randomString(),
-          status_text: randomString(),
-          created_on: new Date().toISOString(),
-          updated_on: new Date().toISOString(),
-          open: Math.random() > 0.5 ? true: false
-        })
-      }
-
-      IssueModel.insertMany(issues, function(err, result) {
-        if (err) { return next(err) }
-        res.send(result)
-      })
-    });
-
-  app.route('/_api/issues/deleteRandom')
-
-    .get(function (req, res, next) {
-      IssueModel.deleteMany(
-        { project: 'random' },
-        function(err, result) {
-          if (err) { return next(err) }
-          res.send(result)
-        }
-      )
     });
 };

@@ -39,13 +39,16 @@ fccTestingRoutes(app);
 //Routing for API
 apiRoutes(app);
 
-app.use(function(err, req, res, next) {
-  if (err) {
-    res.status(500)
-    .type('text')
-    .send(err.message ? err.message : 'Something went wrong');
-  }
-})
+// Error Middleware
+// app.use(function(err, req, res, next) {
+//   if (err) {
+//     res.status(500)
+//     .type('text')
+//     .send(err.message ?
+//       (err.message.text | err.message) :
+//       'Something went wrong');
+//   }
+// })
 
 //404 Not Found Middleware
 app.use(function(req, res, next) {
@@ -66,7 +69,7 @@ const listener = app.listen(process.env.PORT || 3000, function () {
         console.log('Tests are not valid:');
         console.error(e);
       }
-    }, 3500);
+    }, 500);
   }
 });
 
