@@ -63,7 +63,7 @@ module.exports = function (app) {
 
       for (const field of requiredFields) {
         if (!req.body[field]) {
-          res.status(400);
+          // res.status(400);
           return res.send({ error: 'required field(s) missing' });
         }
       }
