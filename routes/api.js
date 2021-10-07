@@ -86,6 +86,16 @@ module.exports = function (app) {
 
     .put(function (req, res, next) {
       const project = req.params.project;
+      const fields = [
+        'issue_title',
+        'issue_text',
+        'created_on',
+        'updated_on',
+        'created_by',
+        'assigned_to',
+        'open',
+        'status_text'
+      ];
 
       if (!req.body._id) {
         return res.send({ error: 'missing _id' });
@@ -102,8 +112,8 @@ module.exports = function (app) {
           });
         }
 
-        const update = Object.keys(req.body)
-          .filter(key => req.body[key] && key !== '_id')
+        const update = fields
+          .filter(key => req.body[key])
           .reduce((object, key) => {
             object[key] = req.body[key];
             return object;
