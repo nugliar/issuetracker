@@ -74,9 +74,9 @@ module.exports = function (app) {
         created_on: new Date().toISOString(),
         updated_on: new Date().toISOString(),
         created_by: req.body.created_by,
-        assigned_to: req.body.assigned_to,
+        assigned_to: req.body.assigned_to || '',
         open: true,
-        status_text: req.body.status_text
+        status_text: req.body.status_text || ''
       },
       function(err, issue) {
         if (err) { return next(err) }
