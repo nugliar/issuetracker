@@ -63,7 +63,6 @@ module.exports = function (app) {
 
       for (const field of requiredFields) {
         if (!req.body[field]) {
-          // res.status(400);
           return res.send({ error: 'required field(s) missing' });
         }
       }
@@ -89,7 +88,6 @@ module.exports = function (app) {
       const project = req.params.project;
 
       if (!req.body._id) {
-        res.status(400);
         return res.send({ error: 'missing _id' });
       }
 
@@ -98,7 +96,6 @@ module.exports = function (app) {
         project: project
       }, function(err, issue) {
         if (err || !issue) {
-          res.status(500);
           return res.send({
             _id: req.body._id,
             error: 'could not update'
@@ -113,7 +110,6 @@ module.exports = function (app) {
           }, {});
 
         if (!Object.keys(update).length) {
-          res.status(400);
           return res.send({
             _id: req.body._id,
             error: 'no update field(s) sent'
@@ -139,7 +135,6 @@ module.exports = function (app) {
       const project = req.params.project;
 
       if (!req.body._id) {
-        res.status(400);
         return res.send({ error: 'missing _id' });
       }
 
@@ -153,7 +148,6 @@ module.exports = function (app) {
             result: 'successfully deleted',
           })
         } else {
-          res.status(500);
           res.send({
             _id: req.body._id,
             error: 'could not delete'

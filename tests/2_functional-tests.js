@@ -89,7 +89,6 @@ suite('Functional Tests', function() {
       .send(testIssue)
       .end(function(err, res) {
         if (err) { done(err) }
-        assert.notEqual(res.status, 200);
         assert.isOk(res.body.error);
         assert.equal(res.body.error, 'required field(s) missing');
         done();
@@ -313,7 +312,6 @@ suite('Functional Tests', function() {
         issue_title: randomString(),
       })
       .end(function(err, res) {
-        assert.notEqual(res.status, 200);
         assert.isOk(res.body.error);
         assert.equal(res.body.error, 'missing _id');
         done();
@@ -342,7 +340,6 @@ suite('Functional Tests', function() {
             _id: savedIssue._id,
           })
           .end(function(err, res) {
-            assert.notEqual(res.status, 200);
             assert.isOk(res.body.error);
             assert.equal(res.body.error, 'no update field(s) sent');
             assert.equal(res.body._id, savedIssue._id);
@@ -362,7 +359,6 @@ suite('Functional Tests', function() {
       _id: randomId,
     })
     .end(function(err, res) {
-      assert.notEqual(res.status, 200);
       assert.isOk(res.body.error);
       assert.equal(res.body.error, 'could not update');
       assert.equal(res.body._id, randomId);
@@ -414,7 +410,6 @@ suite('Functional Tests', function() {
     })
     .end(function(err, res) {
       if (err) { return done(err) }
-      assert.notEqual(res.status, 200);
       assert.isOk(res.body.error);
       assert.equal(res.body.error, 'could not delete');
       assert.equal(res.body._id, randomId);
@@ -431,7 +426,6 @@ suite('Functional Tests', function() {
     .send({})
     .end(function(err, res) {
       if (err) { return done(err) }
-      assert.notEqual(res.status, 200);
       assert.isOk(res.body.error);
       assert.equal(res.body.error, 'missing _id');
       done();
