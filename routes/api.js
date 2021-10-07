@@ -101,6 +101,8 @@ module.exports = function (app) {
         return res.send({ error: 'missing _id' });
       }
 
+      console.log(req.body);
+
       IssueModel.findOne({
         _id: req.body._id,
         project: project
