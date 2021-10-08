@@ -357,6 +357,7 @@ suite('Functional Tests', function() {
     .put('/api/issues/' + randomProject)
     .send({
       _id: randomId,
+      issue_text: 'does not matter'
     })
     .end(function(err, res) {
       assert.isOk(res.body.error);

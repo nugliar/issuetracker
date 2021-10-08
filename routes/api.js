@@ -101,31 +101,28 @@ module.exports = function (app) {
         return res.send({ error: 'missing _id' });
       }
 
+      const update = fields
+        .filter(key => req.body[key])
+        .reduce((object, key) => {
+          object[key] = req.body[key];
+          return object;
+        }, {});
+
+      if (!Object.keys(update).length) {
+        return res.send({
+          _id: req.body._id,
+          error: 'no update field(s) sent'
+        });
+      }
+
       IssueModel.findOne({
         _id: req.body._id,
         project: project
       }, function(err, issue) {
         if (err || !issue) {
-          console.log('issue: ' + issue);
-          console.log(req.body);
-          console.log(err);
           return res.send({
             _id: req.body._id,
             error: 'could not update'
-          });
-        }
-
-        const update = fields
-          .filter(key => req.body[key])
-          .reduce((object, key) => {
-            object[key] = req.body[key];
-            return object;
-          }, {});
-
-        if (!Object.keys(update).length) {
-          return res.send({
-            _id: req.body._id,
-            error: 'no update field(s) sent'
           });
         }
 
